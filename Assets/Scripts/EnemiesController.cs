@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EnenmiesController : MonoBehaviour
+public class EnemiesController : MonoBehaviour
 {
     [SerializeField] private List<Sprite> AllEnemies;
     [SerializeField] private List<SpawnPoint> SpawnPoints;
