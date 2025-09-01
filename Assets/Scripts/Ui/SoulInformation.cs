@@ -14,4 +14,9 @@ public class SoulInformation : MonoBehaviour
         MainImage.sprite = soulItem.Avatar;
         if (OnSoulClick != null) SoulButton.onClick.AddListener(() => OnSoulClick());
     }
+
+    public void SelectMe()
+    {
+        SoulButton.Select();
+    }
 }

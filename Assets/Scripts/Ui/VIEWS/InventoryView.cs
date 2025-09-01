@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class InventoryView : UiView
@@ -11,10 +12,13 @@ public class InventoryView : UiView
     [SerializeField] private Image Avatar;
     [SerializeField] private Button UseButton;
     [SerializeField] private Button DestroyButton;
+    [SerializeField] private Selectable SelectOnDisable;
 
     private RectTransform _contentParent;
     private GameObject _currentSelectedGameObject;
     private SoulInformation _currentSoulInformation;
+
+    private List<SoulInformation> _soulItems = new List<SoulInformation>();
 
     public override void Awake()
     {
@@ -29,6 +33,7 @@ public class InventoryView : UiView
         {
             SoulInformation newSoul = Instantiate(SoulItemPlaceHolder.gameObject, _contentParent).GetComponent<SoulInformation>();
             newSoul.SetSoulItem(SoulController.Instance.Souls[i], () => SoulItem_OnClick(newSoul));
+            _soulItems.Add(newSoul);
         }
 
         SoulItemPlaceHolder.gameObject.SetActive(false);
@@ -36,7 +41,34 @@ public class InventoryView : UiView
 
     private void OnEnable()
     {
-        ClearSoulInformation();
+        SelectFirstSoul();
+    }
+
+    private void SelectFirstSoul()
+    {
+        if(_soulItems.Count == 0)
+        {
+            ClearSoulInformation();
+            return;
+        }
+        FixSoulItemsList();
+        _soulItems[0].SelectMe();
+        OnChildSelectableSelected(_soulItems[0].GetComponent<Selectable>());
+        _currentSoulInformation = _soulItems[0];
+        _currentSelectedGameObject = _soulItems[0].gameObject;
+        SetupSoulInformation(_soulItems[0].soulItem);
+    }
+
+    private void FixSoulItemsList()
+    {
+        for(int i = _soulItems.Count - 1; i >= 0; i--)
+        {
+            if(_soulItems[i] == null)
+            {
+                _soulItems.RemoveAt(i);
+            }
+        }
+        _soulItems.Sort((x, y) => x.transform.GetSiblingIndex() - y.transform.GetSiblingIndex());
     }
 
     private void ClearSoulInformation()
@@ -66,6 +98,21 @@ public class InventoryView : UiView
         SetupDestroyButton(soulItem.CanBeDestroyed);
     }
 
+    public override void OnChildSelectableSelected(Selectable selectable)
+    {
+        SelectOnEnable = selectable;
+    }
+
+    public override void DisableView()
+    {
+        base.DisableView();
+        if(_contentParent.childCount > 0)
+        {
+            SelectOnEnable = _contentParent.GetChild(0).GetComponent<Selectable>();
+        }
+        if (SelectOnDisable != null) SelectOnDisable.Select();
+    }
+
     private void SelectElement(int index)
     {
 
@@ -86,15 +133,16 @@ public class InventoryView : UiView
         else
         {
             //USE SOUL
+            GameControlller.Instance.score += _currentSoulInformation.soulItem.ScoreOnUse;
             Destroy(_currentSelectedGameObject);
-            ClearSoulInformation();
+            SelectFirstSoul();
         }
     }
 
     private void DestroyCurrentSoul()
     {
         Destroy(_currentSelectedGameObject);
-        ClearSoulInformation();
+        SelectFirstSoul();
     }
 
     private void SetupUseButton(bool active)
@@ -103,6 +151,7 @@ public class InventoryView : UiView
         if (active)
         {
             bool isInCorrectLocalization = GameControlller.Instance.IsCurrentLocalization(_currentSoulInformation.soulItem.UsableInLocalization);
+            UseButton.interactable = isInCorrectLocalization;
             PopUpInformation popUpInfo = new PopUpInformation
             {
                 DisableOnConfirm = isInCorrectLocalization,

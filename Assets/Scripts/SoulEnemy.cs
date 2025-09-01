@@ -7,10 +7,12 @@ public class SoulEnemy : MonoBehaviour, IEnemy
     [SerializeField] private SpriteRenderer EnemySpriteRenderer;
 
     private SpawnPoint _enemyPosition;
+    private EnemyDefinition _enemyDefinition;
 
-    public void SetupEnemy(Sprite sprite, SpawnPoint spawnPoint)
+    public void SetupEnemy(EnemyDefinition enemyDefinition, SpawnPoint spawnPoint)
     {
-        EnemySpriteRenderer.sprite = sprite;
+        EnemySpriteRenderer.sprite = enemyDefinition.Sprite;
+        _enemyDefinition = enemyDefinition;
         _enemyPosition = spawnPoint;
         gameObject.SetActive(true);
     }
@@ -44,13 +46,21 @@ public class SoulEnemy : MonoBehaviour, IEnemy
     private void UseBow()
     {
         // USE BOW
-        GameEvents.EnemyKilled?.Invoke(this);
+        GameEvents.EnemyKilled?.Invoke(this, DamageType.BOW);
     }
 
     private void UseSword()
     {
-        GameEvents.EnemyKilled?.Invoke(this);
+        GameEvents.EnemyKilled?.Invoke(this, DamageType.SWORD);
         // USE SWORD
+    }
+
+    public void SelectMe()
+    {
+        if(InteractionPanelObject.activeSelf)
+            InteractionPanelObject.GetComponentInChildren<UnityEngine.UI.Button>().Select();
+        else if(ActionsPanelObject.activeSelf)
+            ActionsPanelObject.GetComponentInChildren<UnityEngine.UI.Button>().Select();
     }
 
     #region OnClicks
@@ -71,6 +81,13 @@ public class SoulEnemy : MonoBehaviour, IEnemy
     }
 
     #endregion
+    public int GetScore(DamageType damageType)
+    {
+        if(damageType == _enemyDefinition.Weakness)
+            return (int)(_enemyDefinition.Score * 1.5f);
+        return _enemyDefinition.Score;
+    }
+
 }
 
 
@@ -78,4 +95,12 @@ public interface IEnemy
 {
     SpawnPoint GetEnemyPosition();
     GameObject GetEnemyObject();
+    int GetScore(DamageType damageType);
+    void SelectMe();
+}
+
+public enum DamageType
+{
+    BOW,
+    SWORD
 }

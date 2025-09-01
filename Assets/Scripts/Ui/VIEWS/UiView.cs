@@ -10,6 +10,7 @@ public class UiView : MonoBehaviour
 
     [SerializeField] private bool CloseOnNewView = true;
     [SerializeField] private Button BackButon;
+    [SerializeField] protected Selectable SelectOnEnable;
 
     private UiView _parentView;
 
@@ -43,6 +44,7 @@ public class UiView : MonoBehaviour
     public void ActiveView(bool active)
     {
         this.gameObject.SetActive(active);
+        if (active && SelectOnEnable != null) SelectOnEnable.Select();
     }
 
     public void ActiveView(Action onBackButtonAction = null)
@@ -50,9 +52,10 @@ public class UiView : MonoBehaviour
         if (onBackButtonAction != null) BackButon.onClick.AddListener(() => onBackButtonAction());
 
         if (!gameObject.activeSelf) this.ActiveView(true);
+        if (SelectOnEnable != null) SelectOnEnable.Select();
     }
 
-    public void DisableView()
+    public virtual void DisableView()
     {
         if (_parentView != null)
         {
@@ -73,6 +76,8 @@ public class UiView : MonoBehaviour
 
         Destroy(this.gameObject);
     }
+
+    public virtual void OnChildSelectableSelected(Selectable selectable) { }
 
     public void DisableBackButton()
     {

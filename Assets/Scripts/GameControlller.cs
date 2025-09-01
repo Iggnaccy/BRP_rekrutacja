@@ -41,6 +41,8 @@ public class GameControlller : MonoBehaviour
         set => currentGameLocalization = value;
     }
 
+    public int score;
+
     private bool _isPaused;
 
     public bool IsPaused

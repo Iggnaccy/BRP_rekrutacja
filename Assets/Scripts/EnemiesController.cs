@@ -4,12 +4,16 @@ using UnityEngine;
 
 public class EnemiesController : MonoBehaviour
 {
-    [SerializeField] private List<Sprite> AllEnemies;
+    [SerializeField] private List<Sprite> AllEnemies; // changed to SO, left for reference
+    [SerializeField] private List<EnemyDefinition> AllEnemyDefinitions;
     [SerializeField] private List<SpawnPoint> SpawnPoints;
     [SerializeField] private GameObject EnemyPrefab;
 
     private int _maxEnemies = 3;
     private int _currentEnemies = 0;
+    private bool _selectNextEnemy = false;
+
+    private List<IEnemy> _currentEnemyList = new List<IEnemy>();
 
     private void Awake()
     {
@@ -41,11 +45,17 @@ public class EnemiesController : MonoBehaviour
         GameEvents.EnemyKilled -= EnemyKilled;
     }
 
-    private void EnemyKilled(IEnemy enemy)
+    private void EnemyKilled(IEnemy enemy, DamageType damageType)
     {
+        _currentEnemyList.Remove(enemy);
+        if(_currentEnemyList.Count > 0)
+            _currentEnemyList[0].SelectMe();
+        else
+            _selectNextEnemy = true;
         FreeSpawnPoint(enemy.GetEnemyPosition());
         DestroyKilledEnemy(enemy.GetEnemyObject());
         StartCoroutine(SpawnEnemyViaCor());
+        GameControlller.Instance.score += enemy.GetScore(damageType);
     }
 
     private void SpawnEnemies()
@@ -83,9 +93,15 @@ public class EnemiesController : MonoBehaviour
         
         SpawnPoints[freeSpawnPointIndex].IsOccupied = true;
         SoulEnemy enemy = Instantiate(EnemyPrefab, SpawnPoints[freeSpawnPointIndex].Position.position, Quaternion.identity, transform).GetComponent<SoulEnemy>();
-        int spriteIndex = Random.Range(0, AllEnemies.Count);
-        enemy.SetupEnemy(AllEnemies[spriteIndex], SpawnPoints[freeSpawnPointIndex]);
+        int enemyIndex = Random.Range(0, AllEnemyDefinitions.Count);
+        enemy.SetupEnemy(AllEnemyDefinitions[enemyIndex], SpawnPoints[freeSpawnPointIndex]);
+        if (_selectNextEnemy)
+        {
+            enemy.SelectMe();
+            _selectNextEnemy = false;
+        }
         _currentEnemies++;
+        _currentEnemyList.Add(enemy);
     }
 
     private void DestroyKilledEnemy(GameObject enemy)
