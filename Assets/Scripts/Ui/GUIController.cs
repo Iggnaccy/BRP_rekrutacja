@@ -21,12 +21,12 @@ public class GUIController : MonoBehaviour
     [SerializeField] private GameObject InGameGuiObject;
     [SerializeField] private PopUpView PopUp;
     [SerializeField] private PopUpScreenBlocker ScreenBlocker;
-    [SerializeField] private Selectable SelectOnEnable;
+    //[SerializeField] private Selectable SelectOnEnable;
 
     private void Start()
     {
         if (ScreenBlocker) ScreenBlocker.InitBlocker();
-        if (SelectOnEnable) SelectOnEnable.Select();
+        //if (SelectOnEnable) SelectOnEnable.Select();
     }
 
     private void ActiveInGameGUI(bool active)

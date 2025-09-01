@@ -11,7 +11,7 @@ public class EnemiesController : MonoBehaviour
 
     private int _maxEnemies = 3;
     private int _currentEnemies = 0;
-    private bool _selectNextEnemy = false;
+    private bool _selectNextEnemy = true; // true to select first spawned enemy
 
     private List<IEnemy> _currentEnemyList = new List<IEnemy>();
 
